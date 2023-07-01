@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Password Manager</title>
+    <!-- Подключение файлов Materialize CSS -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <style>
+    nav.navbar {
+      transition: box-shadow .3s, background-color .3s;
+      padding: 0 20px;
+      background-color: #fff;
+      color: rgba(0,0,0,0.87);
+    }
+    nav.navbar .brand-logo {
+      position: relative;
+      float: left;
+      font-size: 18px;
+      color: rgba(0,0,0,0.87);
+    }
+    .page-footer {
+      background-color: #fff;
+      border-top: 1px solid #e0e0e0;
+      color: #444;
+      padding: 10px 0;
+      margin: 0;
+    }
+    main {
+        flex: 1 0 auto;
+        min-height: 75vh
+    }
+
+    .password-mask {
+        margin-right: 15px;
+    }
+    .copy-icon, .delete-icon, .password-mask {
+        cursor: pointer;
+    }
+    nav ul a {
+        color: rgba(0,0,0,0.87);
+    }
+    h2.page-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    .toast {
+        background-color: #0D47A1;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+      <div id="chat-dropdown" class="dropdown-content dropdown-tabbed">
+        <ul class="tabs tabs-fixed-width">
+          <li class="tab col s3"><a href="#settings">Settings</a></li>
+          <li class="tab col s3"><a href="#friends" class="active">Friends</a></li>
+        </ul>
+        <div id="settings" class="col s12">
+          <div class="settings-group">
+            <div class="setting">Night Mode
+              <div class="switch right">
+                <label>
+                  <input type="checkbox"><span class="lever"></span>
+                </label>
+              </div>
+            </div>
+            <div class="setting">Beta Testing
+              <label class="right">
+                <input type="checkbox"><span></span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div id="friends" class="col s12">
+          <ul class="collection flush">
+            <li class="collection-item avatar">
+              <div class="badged-circle online"><img src="//cdn.shopify.com/s/files/1/1775/8583/t/1/assets/portrait1.jpg?v=12187984239991290791495085043" alt="avatar" class="circle"></div><span class="title">Jane Doe</span>
+              <p class="truncate">Lo-fi you probably haven't heard of them</p>
+            </li>
+            <li class="collection-item avatar">
+              <div class="badged-circle"><img src="//cdn.shopify.com/s/files/1/1775/8583/t/1/assets/portrait2.jpg?v=153429080364159231951495085055" alt="avatar" class="circle"></div><span class="title">John Chang</span>
+              <p class="truncate">etsy leggings raclette kickstarter four dollar toast</p>
+            </li>
+            <li class="collection-item avatar">
+              <div class="badged-circle"><img src="//cdn.shopify.com/s/files/1/1775/8583/t/1/assets/portrait3.jpg?v=46796133735944755861495085064" alt="avatar" class="circle"></div><span class="title">Lisa Simpson</span>
+              <p class="truncate">Raw denim fingerstache food truck chia health goth synth</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </header>
+<nav class="navbar nav-extended no-padding">
+      <div class="nav-wrapper">
+        <a href="#" class="brand-logo center">Password saver</a>
+        <ul id="nav-mobile" class="right">
+            <li><a href="/logout"><i class="material-icons dp48">exit_to_app</i></a></li>
+        </ul>
+      </div>
+</nav>
+<main>
+  <div class="container">
+    <h2 class="page-title">
+      Password Manager
+      <!-- Modal Trigger -->
+      <a class="waves-effect waves-light btn modal-trigger" href="#modal1">Add</a>
+    </h2>
+    <table class="centered">
+        <thead>
+            <tr>
+                <th>Website</th>
+                <th>Password</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+
+            {% for password in passwords %}
+                <tr data-password-id="{{ password.id }}">
+                    <td>{{ password.title }}</td>
+                    <td>
+                        <span class="password-mask" data-password="{{ password.password }}" onclick="togglePasswordVisibility(this)">*********</span>
+                        <i class="material-icons copy-icon blue-text text-darken-2" onclick="copyPassword(this)">content_copy</i>
+                    </td>
+                    <td>
+                        <i class="material-icons delete-icon red-text text-lighten-1" onclick="deletePassword(this)">delete</i>
+                    </td>
+                </tr>
+            {% endfor %}
+            <!-- Здесь можно добавить динамическое заполнение таблицы с помощью JavaScript -->
+        </tbody>
+    </table>
+</div>
+<!-- Modal Structure -->
+<div id="modal1" class="modal">
+    <div class="modal-content">
+        <h4>Add Password</h4>
+        <form id="addPasswordForm">
+            <div class="input-field">
+                <input type="text" id="passwordName" name="passwordName" required>
+                <label for="passwordName">Password Name</label>
+            </div>
+            <div class="input-field">
+                <input type="password" id="passwordValue" name="passwordValue" required>
+                <label for="passwordValue">Password Value</label>
+            </div>
+            <button class="btn waves-effect waves-light" type="submit">Add Password</button>
+        </form>
+    </div>
+</div>
+</main>
+
+<footer class="page-footer">
+  <div class="container">
+    <div class="row">
+      <div class="col s6 m3">
+        <p>Made by O.Zaitsev.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+<!-- Подключение файлов Materialize JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<script>
+    M.AutoInit();
+    // Функция для отображения пароля
+    function togglePasswordVisibility(element) {
+        var password = element.getAttribute('data-password');
+        element.textContent = element.textContent === '*********' ? password : '*********';
+    }
+
+    // Функция для копирования пароля
+    function copyPassword(icon) {
+        var passwordElement = icon.previousElementSibling;
+        var password = passwordElement.getAttribute('data-password');
+
+        // Копирование пароля в буфер обмена
+        var tempInput = document.createElement('input');
+        tempInput.value = password;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+
+        // Отображение Toast-сообщения
+        M.toast({html: 'Password copied', classes: 'rounded'});
+    }
+
+    // Функция для удаления пароля
+    function deletePassword(icon) {
+        var passwordRow = icon.parentNode.parentNode;
+        var passwordId = passwordRow.getAttribute('data-password-id');
+
+        // Здесь можно отправить AJAX-запрос на удаление пароля по его ID
+        // и обновить таблицу после успешного удаления
+
+        // Отправка AJAX-запроса на удаление пароля
+        var xhr = new XMLHttpRequest();
+        xhr.open('DELETE', '/passwords/' + passwordId, true);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                // Успешное удаление пароля, обновление таблицы
+                passwordRow.remove();
+                M.toast({html: 'Password deleted', classes: 'rounded'});
+            } else {
+                // Обработка ошибки удаления пароля
+                M.toast({html: 'Error deleting password', classes: 'rounded red'});
+            }
+        };
+        xhr.send();
+    }
+
+    // Обработчик отправки формы добавления пароля
+    document.getElementById('addPasswordForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Получение значений полей формы
+        var passwordName = document.getElementById('passwordName').value;
+        var passwordValue = document.getElementById('passwordValue').value;
+
+         // Создание объекта XMLHttpRequest
+        var xhr = new XMLHttpRequest();
+
+        // Установка параметров запроса
+        xhr.open('POST', '/add_password');
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        // Отправка запроса
+        xhr.send(JSON.stringify({ passwordName: passwordName, passwordValue: passwordValue }));
+
+        // Обработка ответа
+        xhr.onload = function() {
+            console.log('#addPasswordForm');
+            if (xhr.status === 200) {
+                // Обработка успешного добавления пароля
+                var response = JSON.parse(xhr.responseText);
+                let modalInstance = M.Modal.getInstance(document.getElementById('modal1'));
+                modalInstance.close();
+                M.toast({html: response.message, displayLength: 1500, classes: 'rounded', completeCallback: function (){ location.reload()}});
+
+            } else {
+                // Обработка ошибки
+                 M.toast({html: 'Error add password', classes: 'rounded red'});
+            }
+        };
+    });
+
+</script>
+</body>
+</html>
