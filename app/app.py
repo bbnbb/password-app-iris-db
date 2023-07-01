@@ -2,9 +2,7 @@ from functools import wraps
 import hashlib
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 import irisnative
-import os
 from cryptography.fernet import Fernet
-from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config.update(
@@ -56,20 +54,19 @@ def dashboard():
         query = f"SELECT * FROM users WHERE id = {user_id}"
         cur.execute(query)
         # Получение результатов запроса
-        result = cur.fetchone()
-
+        result = cur.fetchall()
+        check_user = result[0]
         # Если пользователь найден, получаем его данные
         if result:
             user = {
-                'id': result[0],
-                'crypto_key': result[2],
+                'id': check_user[0],
+                'crypto_key': check_user[2],
             }
         else:
             return jsonify({'message': 'User not found'}), 400
 
-        crypto_key = result[2]
+        crypto_key = check_user[2]
         cipher_suite = Fernet(crypto_key)
-
         query = f"SELECT id, title, password FROM passwords WHERE user_id = {user_id}"
         cur.execute(query)
         passwords = []
@@ -102,20 +99,20 @@ def login():
         # Получение пользователя по имени пользователя
         query = f"SELECT id,password FROM users WHERE username = '{user_name}'"
         cur.execute(query)
-        result = cur.fetchone()
+        result = cur.fetchall()
+        check_user = result[0]
 
         if result:
             # Извлечение хэша пароля из базы данных
-            stored_password_hash = result[1]
+            stored_password_hash = check_user[1]
 
             # Хеширование введенного пароля
             password_hash = hashlib.sha256(user_password.encode()).hexdigest()
 
             if password_hash == stored_password_hash:
-
                 # После успешной аутентификации
                 session['logged_in'] = True
-                session['user_id'] = result[0]
+                session['user_id'] = check_user[0]
                 session['user_name'] = user_name
                 return redirect(url_for('dashboard'))
             else:
@@ -148,8 +145,7 @@ def register():
         cur = connection.cursor()
         query = f"SELECT * FROM users WHERE username = '{user_name}'"
         cur.execute(query)
-        result = cur.fetchone()
-
+        result = cur.fetchall()
         if result:
             return render_template('register.html', error='Username already exists'), 409
 
@@ -160,7 +156,7 @@ def register():
 
         # Добавление пользователя в базу данных
         query = "INSERT INTO users (username, crypto_key, password) VALUES (?, ?, ?)"
-        values = (user_name, key, password_hash)
+        values = [user_name, key, password_hash]
         cur.execute(query, values)
         connection.commit()
         connection.close()
@@ -186,9 +182,9 @@ def delete_password(password_id):
     # Проверка существования пароля по его ID
     sql_select = "SELECT COUNT(*) FROM passwords WHERE id = ?"
     cur.execute(sql_select, (password_id,))
-    result = cur.fetchone()
-
-    if result[0] == 0:
+    result = cur.fetchall()
+    check_pass_id = result[0]
+    if check_pass_id[0] == 0:
         return jsonify({'message': 'Password not found'}), 404
 
     # Определение SQL-запроса для удаления пароля
@@ -219,18 +215,19 @@ def add_password():
         query = f"SELECT id, crypto_key FROM users WHERE id = {user_id}"
         cur.execute(query)
         # Получение результатов запроса
-        result = cur.fetchone()
+        result = cur.fetchall()
+        check_user = result[0]
         # Если пользователь найден, получаем его данные
         if result:
             user = {
-                'id': result[0],
-                'crypto_key': result[1],
+                'id': check_user[0],
+                'crypto_key': check_user[1],
             }
         else:
             return jsonify({'message': 'User not found'}), 400
 
         # Получение ключа шифрования из поля crypto_key пользователя
-        crypto_key = result[1]
+        crypto_key = check_user[1]
 
         if not crypto_key:
             return jsonify({'message': 'Encryption key not found for user'}), 400
@@ -240,7 +237,7 @@ def add_password():
         encrypted_password = cipher_suite.encrypt(password_value.encode('utf-8'))
 
         sql = "INSERT INTO passwords (user_id, title, password) VALUES (?, ?, ?)"
-        values = (user_id, password_name, encrypted_password)
+        values = [user_id, password_name, encrypted_password]
         # Выполнение SQL-запроса с передачей параметров
         cur.execute(sql, values)
         # Фиксация изменений в базе данных
