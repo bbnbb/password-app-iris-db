@@ -179,7 +179,8 @@ def delete_password(password_id):
 
     # Проверка существования пароля по его ID
     sql_select = "SELECT COUNT(*) FROM passwords WHERE id = ?"
-    cur.execute(sql_select, (password_id,))
+    values = [password_id]
+    cur.execute(sql_select, values)
     result = cur.fetchall()
     check_pass_id = result[0]
     if check_pass_id[0] == 0:
@@ -189,7 +190,7 @@ def delete_password(password_id):
     sql_delete = "DELETE FROM passwords WHERE id = ?"
 
     # Выполнение SQL-запроса с передачей параметров
-    cur.execute(sql_delete, (password_id,))
+    cur.execute(sql_delete, values)
 
     # Фиксация изменений и закрытие соединения
     connection.commit()
