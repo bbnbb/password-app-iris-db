@@ -24,7 +24,6 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
 def init():
     connection = irisnative.createConnection(ip, port, namespace, username, password)
     cur = connection.cursor()
@@ -36,7 +35,6 @@ def init():
     connection.close()
 
     return "<p>init</p>"
-
 
 @app.route("/")
 def hello_world():
