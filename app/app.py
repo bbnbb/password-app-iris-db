@@ -30,7 +30,7 @@ def init():
     cur.execute(
         'CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username VARCHAR(50), crypto_key VARCHAR(256), email VARCHAR(50), password VARCHAR(256))')
     cur.execute(
-        'CREATE TABLE IF NOT EXISTS passwords (id SERIAL PRIMARY KEY, user_id INTEGER, title VARCHAR(50), password VARCHAR(256), FOREIGN KEY (user_id) REFERENCES users(id))')
+        'CREATE TABLE IF NOT EXISTS passwords (id SERIAL PRIMARY KEY, user_id INTEGER, title VARCHAR(50), login VARCHAR(50), password VARCHAR(256), FOREIGN KEY (user_id) REFERENCES users(id))')
     # when finished, use the line below to close the connection
     connection.close()
 
@@ -65,14 +65,15 @@ def dashboard():
 
         crypto_key = check_user[2]
         cipher_suite = Fernet(crypto_key)
-        query = f"SELECT id, title, password FROM passwords WHERE user_id = {user_id}"
+        query = f"SELECT id, title, login, password FROM passwords WHERE user_id = {user_id}"
         cur.execute(query)
         passwords = []
         for row in cur.fetchall():
-            decrypted_password = cipher_suite.decrypt(row[2]).decode('utf-8')
+            decrypted_password = cipher_suite.decrypt(row[3]).decode('utf-8')
             passwords.append({
                 'id': row[0],
                 'title': row[1],
+                'login': row[2],
                 'password': decrypted_password
             })
 
@@ -204,9 +205,10 @@ def add_password():
     user_id = session.get('user_id')
     if user_id:
         password_name = request.json.get('passwordName')
+        password_login = request.json.get('passwordLogin')
         password_value = request.json.get('passwordValue')
 
-        if not password_name or not password_value:
+        if not password_name or not password_value or not password_login:
             return jsonify({'message': 'Invalid data provided'}), 400
 
         connection = irisnative.createConnection(ip, port, namespace, username, password)
@@ -235,8 +237,8 @@ def add_password():
         cipher_suite = Fernet(crypto_key)
         encrypted_password = cipher_suite.encrypt(password_value.encode('utf-8'))
 
-        sql = "INSERT INTO passwords (user_id, title, password) VALUES (?, ?, ?)"
-        values = [user_id, password_name, encrypted_password]
+        sql = "INSERT INTO passwords (user_id, title, login, password) VALUES (?, ?, ?, ?)"
+        values = [user_id, password_name, password_login, encrypted_password]
         # Выполнение SQL-запроса с передачей параметров
         cur.execute(sql, values)
         # Фиксация изменений в базе данных

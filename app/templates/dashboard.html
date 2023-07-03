@@ -71,6 +71,7 @@
         <thead>
             <tr>
                 <th>Title</th>
+                <th>Login</th>
                 <th>Password</th>
                 <th>Actions</th>
             </tr>
@@ -80,6 +81,7 @@
             {% for password in passwords %}
                 <tr data-password-id="{{ password.id }}">
                     <td>{{ password.title }}</td>
+                    <td>{{ password.login }}</td>
                     <td>
                         <span class="password-mask" data-password="{{ password.password }}" onclick="togglePasswordVisibility(this)">*********</span>
                         <i class="material-icons copy-icon blue-text text-darken-2" onclick="copyPassword(this)">content_copy</i>
@@ -101,6 +103,10 @@
             <div class="input-field">
                 <input type="text" id="passwordName" name="passwordName" required>
                 <label for="passwordName">Password Title</label>
+            </div>
+            <div class="input-field">
+                <input type="text" id="passwordLogin" name="passwordLogin" required>
+                <label for="passwordLogin">Password Login</label>
             </div>
             <div class="input-field">
                 <input type="password" id="passwordValue" name="passwordValue" required>
@@ -179,6 +185,7 @@
         // Получение значений полей формы
         var passwordName = document.getElementById('passwordName').value;
         var passwordValue = document.getElementById('passwordValue').value;
+        var passwordLogin = document.getElementById('passwordLogin').value;
 
          // Создание объекта XMLHttpRequest
         var xhr = new XMLHttpRequest();
@@ -188,7 +195,7 @@
         xhr.setRequestHeader('Content-Type', 'application/json');
 
         // Отправка запроса
-        xhr.send(JSON.stringify({ passwordName: passwordName, passwordValue: passwordValue }));
+        xhr.send(JSON.stringify({ passwordName: passwordName, passwordValue: passwordValue, passwordLogin: passwordLogin }));
 
         // Обработка ответа
         xhr.onload = function() {
