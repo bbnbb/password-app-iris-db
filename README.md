@@ -26,11 +26,14 @@ after that you will be redirected to the login page where you can log in
 in case of incorrect data, you will be shown an authorization error
 
 after successful login you will be redirected to http://localhost:8011/dashboard page where you can manage your passwords.
-![image](https://github.com/bbnbb/password-app-iris-db/assets/15561051/f901fba7-7e42-4ab7-ad94-a6b89ecd5078)
+![image](https://github.com/bbnbb/password-app-iris-db/assets/15561051/33f85114-88df-4358-87d8-0f458164b24f)
+
 
 The functionality of viewing previously saved passwords is available (by clicking on *********), as well as copying to the clipboard by clicking on the corresponding button. As well as the functionality of deleting previously saved passwords.
+
 To add passwords, a form for adding a password is provided.
-![image](https://github.com/bbnbb/password-app-iris-db/assets/15561051/21f774bb-8097-4160-be50-83fffa1952e4)
+![image](https://github.com/bbnbb/password-app-iris-db/assets/15561051/f47ec811-4f8e-4d13-8d7b-10f8fe49b2b4)
+
 
 ## Technologies Used
 
