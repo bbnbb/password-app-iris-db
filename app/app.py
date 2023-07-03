@@ -99,9 +99,9 @@ def login():
         query = f"SELECT id,password FROM users WHERE username = '{user_name}'"
         cur.execute(query)
         result = cur.fetchall()
-        check_user = result[0]
 
         if result:
+            check_user = result[0]
             # Извлечение хэша пароля из базы данных
             stored_password_hash = check_user[1]
 
