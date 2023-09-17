@@ -34,6 +34,11 @@ The functionality of viewing previously saved passwords is available (by clickin
 To add passwords, a form for adding a password is provided.
 ![image](https://github.com/bbnbb/password-app-iris-db/assets/15561051/f47ec811-4f8e-4d13-8d7b-10f8fe49b2b4)
 
+To edit the password, click on the corresponding icon, a modal window with an editing form will open
+![image](https://github.com/bbnbb/password-app-iris-db/assets/15561051/b5acef0a-37c0-44c3-9a2f-77f8a821711a)
+![image](https://github.com/bbnbb/password-app-iris-db/assets/15561051/748e190f-c459-4243-8ade-8fa793524df6)
+
+
 
 ## Technologies Used
 
