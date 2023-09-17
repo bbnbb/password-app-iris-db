@@ -79,7 +79,7 @@
         <tbody>
 
             {% for password in passwords %}
-                <tr data-password-id="{{ password.id }}">
+                <tr data-login="{{ password.login }}" data-password="{{ password.password }}" data-title="{{ password.title }}" data-password-id="{{ password.id }}">
                     <td>{{ password.title }}</td>
                     <td>{{ password.login }}</td>
                     <td>
@@ -87,6 +87,7 @@
                         <i class="material-icons copy-icon blue-text text-darken-2" onclick="copyPassword(this)">content_copy</i>
                     </td>
                     <td>
+                        <i class="material-icons edit-icon green-text text-lighten-1" onclick="editPassword(this)">edit</i>
                         <i class="material-icons delete-icon red-text text-lighten-1" onclick="deletePassword(this)">delete</i>
                     </td>
                 </tr>
@@ -116,6 +117,30 @@
         </form>
     </div>
 </div>
+    <!-- Modal Structure -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <h4>Edit Password</h4>
+            <form id="editPasswordForm">
+                <label for="passwordName" class="active">Password Title</label>
+                <div class="input-field">
+                    <input type="hidden" id="editpasswordId" name="passwordId" required>
+                    <input type="text" id="editpasswordName" name="passwordName" required>
+
+                </div>
+                <label for="passwordLogin" class="active">Password Login</label>
+                <div class="input-field">
+                    <input type="text" id="editpasswordLogin" name="passwordLogin" required>
+
+                </div>
+                <label for="passwordValue" class="active">Password Value</label>
+                <div class="input-field">
+                    <input type="text" id="editpasswordValue" name="passwordValue" required>
+                </div>
+                <button  id="saveButton" class="btn waves-effect waves-light" type="submit" disabled>Save</button>
+            </form>
+        </div>
+    </div>
 </main>
 
 <footer class="page-footer">
@@ -136,6 +161,105 @@
         var password = element.getAttribute('data-password');
         element.textContent = element.textContent === '*********' ? password : '*********';
     }
+
+    // Слушаем изменения в полях формы
+    document.getElementById('editpasswordName').addEventListener('input', handleInputChange);
+    document.getElementById('editpasswordLogin').addEventListener('input', handleInputChange);
+    document.getElementById('editpasswordValue').addEventListener('input', handleInputChange);
+
+    // Функция для обработки изменений в полях формы
+    function handleInputChange() {
+        // Получаем значения полей
+        var passwordName = document.getElementById('editpasswordName').value;
+        var passwordLogin = document.getElementById('editpasswordLogin').value;
+        var passwordValue = document.getElementById('editpasswordValue').value;
+
+        // Получаем кнопку "Save"
+        var saveButton = document.getElementById('saveButton');
+
+        // Проверяем, есть ли значения в полях
+        if (passwordName.trim() !== '' && passwordLogin.trim() !== '' && passwordValue.trim() !== '') {
+            // Если все поля заполнены, включаем кнопку "Save"
+            saveButton.removeAttribute('disabled');
+        } else {
+            // Если хотя бы одно поле не заполнено, отключаем кнопку "Save"
+            saveButton.setAttribute('disabled', 'disabled');
+        }
+    }
+
+
+    function editPassword(element) {
+        // Находим родительский элемент <tr> для элемента, на который был сделан клик
+        let trElement = element.closest('tr');
+
+        // Получаем значения атрибутов
+        let login = trElement.getAttribute('data-login');
+        let title = trElement.getAttribute('data-title');
+        let passwordId = trElement.getAttribute('data-password-id');
+        let password = trElement.getAttribute('data-password');
+
+        // Заполняем поля в форме редактирования
+        document.getElementById('editpasswordName').value = title;
+        document.getElementById('editpasswordLogin').value = login;
+        document.getElementById('editpasswordValue').value = password;
+
+        document.getElementById('editpasswordId').value = passwordId;
+        var instance = M.Modal.getInstance(document.getElementById('edit-modal'));
+        instance.open();
+
+    }
+
+    // Находим форму по ее ID
+    var editPasswordForm = document.getElementById('editPasswordForm');
+
+    // Добавляем обработчик события submit
+    editPasswordForm.addEventListener('submit', function (event) {
+        event.preventDefault(); // Предотвращаем стандартное поведение формы (перезагрузку страницы)
+
+        // Получаем значения из полей формы
+        let passwordName = document.getElementById('editpasswordName').value;
+        let passwordLogin = document.getElementById('editpasswordLogin').value;
+        let passwordValue = document.getElementById('editpasswordValue').value;
+        let passwordId = document.getElementById('editpasswordId').value;
+        console.log(passwordId);
+        // Создаем объект с данными для отправки
+        let data = {
+            passwordName: passwordName,
+            passwordLogin: passwordLogin,
+            passwordValue: passwordValue
+        };
+
+        // Создаем новый объект XMLHttpRequest
+        let xhr = new XMLHttpRequest();
+
+        // Настраиваем запрос (PUT-запрос на '/edit_password')
+        xhr.open('PUT', '/edit_password/' + passwordId, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+
+        // Обработка ответа от сервера
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                // Успешный ответ от сервера
+                var response = JSON.parse(xhr.responseText);
+                let modalInstance = M.Modal.getInstance(document.getElementById('edit-modal'));
+                modalInstance.close();
+                M.toast({html: response.message, displayLength: 1500, classes: 'rounded', completeCallback: function (){ location.reload()}});
+
+            } else {
+                // Обработка ошибки
+                console.error('Ошибка: ' + xhr.status);
+            }
+        };
+
+        // Обработка ошибки при отправке запроса
+        xhr.onerror = function () {
+            console.error('Произошла ошибка при отправке запроса.');
+        };
+
+        // Отправляем запрос на сервер с данными формы
+        xhr.send(JSON.stringify(data));
+    });
+
 
     // Функция для копирования пароля
     function copyPassword(icon) {

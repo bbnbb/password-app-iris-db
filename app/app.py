@@ -249,5 +249,58 @@ def add_password():
         return jsonify({'message': 'Password added successfully'}), 200
 
 
+@app.route('/edit_password/<int:password_id>', methods=['PUT'])
+def edit_password(password_id):
+    user_id = session.get('user_id')
+    if user_id:
+        password_name = request.json.get('passwordName')
+        password_login = request.json.get('passwordLogin')
+        password_value = request.json.get('passwordValue')
+
+        if not password_name or not password_value or not password_login:
+            return jsonify({'message': 'Invalid data provided'}), 400
+
+        connection = irisnative.createConnection(ip, port, namespace, username, password)
+        cur = connection.cursor()
+
+        # Проверяем, существует ли пароль с указанным ID и принадлежит ли он текущему пользователю
+        query = f"SELECT user_id FROM passwords WHERE id = ?"
+        cur.execute(query, [password_id])
+        result = cur.fetchall()
+
+        if not result:
+            return jsonify({'message': 'Password not found'}), 400
+
+        if result[0][0] != user_id:
+            return jsonify({'message': 'You do not have permission to edit this password'}), 403
+
+        query = f"SELECT id, crypto_key FROM users WHERE id = {user_id}"
+        cur.execute(query)
+        result = cur.fetchall()
+        check_user = result[0]
+
+        crypto_key = check_user[1]
+
+        if not crypto_key:
+            return jsonify({'message': 'Encryption key not found for user'}), 400
+
+        # Шифрование пароля
+        cipher_suite = Fernet(crypto_key)
+        encrypted_password = cipher_suite.encrypt(password_value.encode('utf-8'))
+
+        # Обновление пароля в базе данных
+        sql = "UPDATE passwords SET title = ?, login = ?, password = ? WHERE id = ?"
+        values = [password_name, password_login, encrypted_password, password_id]
+        cur.execute(sql, values)
+        connection.commit()
+        connection.close()
+
+        # Возвращение успешного ответа
+        return jsonify({'message': 'Password updated successfully'}), 200
+    else:
+        return jsonify({'message': 'User not authenticated'}), 401
+
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8011, debug=True)
